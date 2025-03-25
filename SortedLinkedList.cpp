@@ -1,7 +1,6 @@
 #include "SortedLinkedList.h"
 #include <iostream>
 #include <stdexcept>
-#include "SortedLinkedList.h"
 
 node::node(int value) {
     this->data = value;
