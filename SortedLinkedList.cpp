@@ -41,7 +41,7 @@ void SortedLinkedList::insert(int value) {
 }
 
 void SortedLinkedList::remove(int index) {
-    if (this->head == nullptr) throw std::runtime_error("The list is empty");
+    if (this->head == nullptr) return;
     node *cur = this->head;
     node *prev = nullptr;
     if (index == 0) {
@@ -55,7 +55,7 @@ void SortedLinkedList::remove(int index) {
         cur = cur->next;
         i++;
     }
-    if (cur == nullptr) throw out_of_range("index out of bounds");
+    if (cur == nullptr) return;
     prev->next = cur->next;
     delete cur;
 }
