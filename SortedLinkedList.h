@@ -17,6 +17,7 @@ public:
     void remove(int index);
     friend ostream& operator<<(ostream& os,const SortedLinkedList& list);
     int operator[](int index);
+    ~SortedLinkedList();
 };
 
-#endif //CORE_DUMPERS_SORTED_LIST_H
+#endif

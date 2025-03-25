@@ -3,38 +3,31 @@
 
 using namespace std;
 int main(){
-    SortedLinkedList list;
+    SortedLinkedList L;
 
-    // Test Case 1: Insert elements into the sorted linked list
-    list.insert(5);
-    list.insert(1);
-    list.insert(10);
-    list.insert(3);
-    list.insert(7);
+    //test 1
+    L.insert(5); // L = [5]
+    L.insert(8); // L = [5, 8]
+    L.insert(7); // L = [5, 7, 8]
+    L.insert(6); // L = [5, 6, 7, 8]
+    L.insert(6); // L = [5, 6, 6, 7, 8]
+    cout << L; // Output: [5, 6, 6, 7, 8]
 
-    cout << "List after insertions: " << list << endl;  // Expected: 1 -> 3 -> 5 -> 7 -> 10 -> NULL
 
-    // Test Case 2: Access elements using []
-    cout << "Element at index 0: " << list[0] << endl;  // Expected: 1
-    cout << "Element at index 2: " << list[2] << endl;  // Expected: 5
-    cout << "Element at index 4: " << list[4] << endl;  // Expected: 10
-    cout << "Element at index 5: " << list[5] << endl;  // Expected: "Index out of bounds" and -1
+    //test 2
+    cout << L[2] << '\n'; // Output: 6
+    cout << L[10]; // Throws out_of_range exception
 
-    // Test Case 3: Remove elements
-    list.remove(2);  // Remove element at index 2 (Expected: 5)
-    cout << "List after removing index 2: " << list << endl;  // Expected: 1 -> 3 -> 7 -> 10 -> NULL
 
-    list.remove(0);  // Remove head (Expected: 1)
-    cout << "List after removing head: " << list << endl;  // Expected: 3 -> 7 -> 10 -> NULL
-
-    list.remove(10);  // Try to remove out-of-bounds index
-    cout << "List after attempting to remove out-of-bounds: " << list << endl;  // Expected: No change
-
-    // Test Case 4: Remove all elements
-    list.remove(0);
-    list.remove(0);
-    list.remove(0);
-    cout << "List after removing all elements: " << list << endl;  // Expected: NULL
+    //test 3
+    L.remove(0); // L = [6, 6, 7, 8]
+    cout << L; // Output: [6, 6, 7, 8]
+    L.remove(100); // No change (out of bounds)
+    cout << L; // Output: [6, 6, 7, 8]
+    L.remove(2); // L = [6, 6, 8]
+    cout << L; // Output: [6, 6, 8]
+    L.remove(2); // L = [6, 6]
+    cout << L; // Output: [6, 6]
 
     return 0;
 }

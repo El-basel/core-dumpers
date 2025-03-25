@@ -1,7 +1,6 @@
 #include "SortedLinkedList.h"
 #include <iostream>
-
-
+#include <stdexcept>
 #include "SortedLinkedList.h"
 
 node::node(int value) {
@@ -43,15 +42,12 @@ void SortedLinkedList::insert(int value) {
 }
 
 void SortedLinkedList::remove(int index) {
-    if (this->head == nullptr) {
-        cout << "The list is empty";
-        return;
-    }
+    if (this->head == nullptr) throw std::runtime_error("The list is empty");
     node *cur = this->head;
     node *prev = nullptr;
     if (index == 0) {
         this->head = cur->next;
-        free(cur);
+        delete cur;
         return;
     }
     int i = 0;
@@ -60,10 +56,7 @@ void SortedLinkedList::remove(int index) {
         cur = cur->next;
         i++;
     }
-    if (cur == nullptr) {
-        cout << "Out of bounds";
-        return;
-    }
+    if (cur == nullptr) throw out_of_range("index out of bounds");
     prev->next = cur->next;
     delete cur;
 }
@@ -74,7 +67,7 @@ ostream &operator<<(ostream &os, const SortedLinkedList &list) {
         os << cur->data << " ";
         cur = cur->next;
     }
-    os << "NULL";
+    os << endl;
     return os;
 }
 
@@ -88,8 +81,17 @@ int SortedLinkedList::operator[](int index) {
         cur = cur->next;
         i++;
     }
-    cout << "Index out of bounds" << endl;
-    return -1;
+    throw out_of_range("index out of bounds");
+}
+
+SortedLinkedList::~SortedLinkedList() {
+    node* cur = this->head;
+    while(cur != nullptr){
+        node* next = cur->next;
+        delete cur;
+        cur = next;
+    }
+    this->head = nullptr;
 }
 
 
