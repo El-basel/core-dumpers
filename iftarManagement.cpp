@@ -1,41 +1,7 @@
 #include <iostream>
 #include <string_view>
-class Guest {
-private:
-    std::string name;
-    std::string contact;
-    std::string iftar_date;
-public:
-    Guest() = default;
-    Guest(std::string p_name, std::string p_contact, std::string p_iftar_date)
-            : name{p_name}, contact{p_contact}, iftar_date{p_iftar_date} {}
-    Guest(Guest& guest) {
-        if(this == &guest) {
-            return;
-        }
-        this->name = guest.name;
-        this->contact = guest.contact;
-        this->iftar_date = guest.iftar_date;
-    }
+#include "iftarManagement.h"
 
-    void display_guest() {
-        std::cout << "Guest: " << name << ", Contact: " << contact
-                  << ", Iftar Date: " << iftar_date << std::endl;
-    }
-    std::string_view get_name() {
-        return name;
-    }
-
-    void update_invitation(std::string new_date) {iftar_date = new_date;}
-    bool operator<(Guest& right_operand) {
-        for (int i = 0; i < iftar_date.length(); i++) {
-            if(iftar_date[i] < right_operand.iftar_date[i]) {
-                return true;
-            }
-        }
-        return false;
-    }
-};
 
 void merge(Guest* arr, Guest* leftArr, Guest* rightArr,
            int left, int middle, int right) {
@@ -73,58 +39,111 @@ void mergeSort(Guest* arr, int left, int right) {
     delete[] rightArr;
 }
 
+Guest::Guest(std::string p_name, std::string p_contact, std::string p_iftar_date)
+        : name{p_name}, contact{p_contact}, iftar_date{p_iftar_date} {}
+Guest::Guest(Guest& guest) {
+    if(this == &guest) {
+        return;
+    }
+    this->name = guest.name;
+    this->contact = guest.contact;
+    this->iftar_date = guest.iftar_date;
+}
 
-class iftarManager {
-private:
-    Guest* guest_list = nullptr;
-    int length = 0;
-public:
-    void add_guest(Guest& guest) {
-        if(length == 0) {
-            guest_list = new Guest(guest);
-            ++length;
-        } else {
-            Guest* tmp = new Guest[length + 1];
-            for (int i = 0; i < length; ++i) {
-                tmp[i] = guest_list[i];
-            }
-            tmp[length] = guest;
-            if(length == 1) {
-                delete guest_list;
-            } else {
-                delete[] guest_list;
-            }
-            guest_list = tmp;
-            ++length;
+void Guest::display_guest() {
+    std::cout << "Guest: " << name << ", Contact: " << contact
+              << ", Iftar Date: " << iftar_date << std::endl;
+}
+std::string_view Guest::get_name() {
+    return name;
+}
+std::string_view Guest::get_date() {
+    return iftar_date;
+}
+
+void Guest::update_invitation(std::string new_date) {iftar_date = new_date;}
+bool Guest::operator<(Guest& right_operand) {
+    for (int i = 0; i < iftar_date.length(); i++) {
+        if(iftar_date[i] < right_operand.iftar_date[i]) {
+            return true;
         }
     }
-    void display_all_guests() {
+    return false;
+}
+
+void iftarManager::add_guest(Guest& guest) {
+    if(length == 0) {
+        guest_list = new Guest[1];
+        guest_list[0] = guest;
+        ++length;
+    } else {
+        Guest* tmp = new Guest[length + 1];
         for (int i = 0; i < length; ++i) {
-            guest_list[i].display_guest();
+            tmp[i] = guest_list[i];
+        }
+        tmp[length] = guest;
+        delete[] guest_list;
+        guest_list = tmp;
+        ++length;
+    }
+}
+void iftarManager::display_all_guests() {
+    for (int i = 0; i < length; ++i) {
+        guest_list[i].display_guest();
+    }
+}
+void iftarManager::update_guest_invitation(std::string name, std::string new_date) {
+    for (int i = 0; i < length; ++i) {
+        if(guest_list[i].get_name() == name) {
+            guest_list[i].update_invitation(new_date);
         }
     }
-    void update_guest_inviation(std::string name, std::string new_date) {
-        for (int i = 0; i < length; ++i) {
-            if(guest_list[i].get_name() == name) {
-                guest_list[i].update_invitation(new_date);
-            }
-        }
+}
+void iftarManager::send_reminder() {
+    for (int i = 0; i < length; ++i) {
+        std::cout << "Reminder sent to " << guest_list[i].get_name()
+        << ": Your iftar invitation is on " << guest_list[i].get_date() << std::endl;
     }
-    void send_reminder() {
+}
+void iftarManager::sort_guest_list() {
+    mergeSort(guest_list, 0, length);
+}
 
+void iftarManager::remove_guest(std::string name) {
+    int new_length = length;
+    std::string lowercase;
+    for (int i = 0; i < name.length(); ++i) {
+        name[i] = std::tolower(name[i]);
     }
-
-    void sort_guest_list() {
-        mergeSort(guest_list, 0, length);
-    }
-    ~iftarManager() {
-        if(length == 1) {
-            delete guest_list;
-        } else if(length > 1) {
-            delete[] guest_list;
+    for (int i = 0; i < length; ++i) {
+        lowercase = guest_list[i].get_name();
+        for (int k = 0; k < guest_list[i].get_name().length(); ++k) {
+            lowercase[k] =  std::tolower(guest_list[i].get_name()[k]);
+        }
+        if(lowercase == name) {
+            --new_length;
         }
     }
-};
+    Guest* new_list = new Guest[new_length];
+    for (int i = 0,j = 0; i < length; ++i) {
+        lowercase = guest_list[i].get_name();
+        for (int k = 0; k < guest_list[i].get_name().length(); ++k) {
+            lowercase[k] =  std::tolower(guest_list[i].get_name()[k]);
+        }
+        if(lowercase == name) {
+            continue;
+        }
+        new_list[j] = guest_list[i];
+        ++j;
+    }
+    delete[] guest_list;
+    length = new_length;
+    guest_list = new_list;
+}
+iftarManager::~iftarManager() {
+    delete[] guest_list;
+}
+
 
 int main() {
     Guest guest1 = Guest("Aisha", "aisha@example.com", "2025-03-15");
@@ -136,6 +155,9 @@ int main() {
     manager.add_guest(guest3);
     manager.display_all_guests();
     manager.sort_guest_list();
+    manager.display_all_guests();
+    manager.send_reminder();
+    manager.remove_guest("omar");
     manager.display_all_guests();
 
     return 0;
