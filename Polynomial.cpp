@@ -4,8 +4,18 @@
 
 Polynomial::Polynomial(long long order) {
     this->order = order;
-    this->coefficients = new long long [order + 1]();
+    this->coefficients = new long long [order + 1];
     this->rhs = 0;
+}
+
+Polynomial::Polynomial(ifstream &inputFile) {
+    inputFile >> order;
+    this->coefficients = new long long [order + 1];
+
+    inputFile >> rhs;
+    for (long long i = 0; i <= order; i++) {
+        inputFile >> coefficients[i];
+    }
 }
 
 Polynomial::~Polynomial() {
@@ -32,11 +42,19 @@ long long Polynomial::absolute(long long number) {
 void Polynomial::print() {
     bool first = true;
     for (long long i = this->order; i >= 0; i--) {
+        //Skip printing any coeff multiplied by 0
         if (this->coefficients[i] == 0) continue;
+
+        //Print signs
         if (!first) cout << " " << sign(this->coefficients[i]) << " ";
-        cout << absolute(this->coefficients[i]);
+
+        //Skip printing 1's and -1's multiplied by x (except the constant)
+        if (absolute(this->coefficients[i]) != 1 || i == 0) cout << absolute(this->coefficients[i]);
+
+        //print the x
         if (i > 1) cout << "x^" << i;
         if (i == 1) cout << "x";
+
         first = false;
     }
     cout << " = ";
@@ -71,3 +89,4 @@ Polynomial Polynomial::subtract(Polynomial& minuend) {
     result.rhs = this->rhs - minuend.rhs;
     return result;
 }
+
