@@ -1,6 +1,8 @@
 #ifndef POLYNOMIAL_H
 #define POLYNOMIAL_H
 #include <iostream>
+#include <fstream>
+#include <string>
 using namespace std;
 
 class Polynomial {
@@ -10,6 +12,7 @@ private:
     long long rhs;
 public:
     Polynomial(long long order);
+    Polynomial(ifstream& inputFile);
     ~Polynomial();
 
     void input();
@@ -19,7 +22,5 @@ public:
     char sign(long long number);
     long long absolute(long long number);
 };
-
-
 
 #endif
