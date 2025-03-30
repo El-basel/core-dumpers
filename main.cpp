@@ -70,8 +70,10 @@ int main() {
     switch (choice) {
         case 1:
             runManual();
+            break;
         case 2:
             runTest();
+            break;
         case 0:
             cout << "Exiting..." << endl;
             return 0;
