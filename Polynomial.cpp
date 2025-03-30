@@ -63,30 +63,40 @@ void Polynomial::print() {
 }
 
 Polynomial Polynomial::add(Polynomial& secondAddend) {
+    //Get the max order to create a polynomial with the needed size
     long long maxOrder;
     this->order >= secondAddend.order ? maxOrder = this->order : maxOrder = secondAddend.order;
-
     Polynomial result(maxOrder);
+
+    //Fetch each corresponding coefficients to add them
     for (long long i = 0; i <= maxOrder; i++) {
         long long firstCoeff = (i <= this->order) ? this->coefficients[i] : 0;
         long long secondCoeff = (i <= secondAddend.order) ? secondAddend.coefficients[i] : 0;
         result.coefficients[i] = firstCoeff + secondCoeff;
     }
+
+    //Add the RHS
     result.rhs = this->rhs + secondAddend.rhs;
+    
     return result;
 }
 
 Polynomial Polynomial::subtract(Polynomial& minuend) {
+    //Get the max order to create a polynomial with the needed size
     long long maxOrder;
     this->order >= minuend.order ? maxOrder = this->order : maxOrder = minuend.order;
-
     Polynomial result(maxOrder);
+
+    //Fetch each corresponding coefficients to subtract them
     for (long long i = 0; i <= maxOrder; i++) {
         long long firstCoeff = (i <= this->order) ? this->coefficients[i] : 0;
         long long secondCoeff = (i <= minuend.order) ? minuend.coefficients[i] : 0;
         result.coefficients[i] = firstCoeff - secondCoeff;
     }
+
+    //Subtract the RHS
     result.rhs = this->rhs - minuend.rhs;
+    
     return result;
 }
 
