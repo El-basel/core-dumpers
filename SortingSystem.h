@@ -2,32 +2,117 @@
 #define SORTINGSYSTEM_H
 #include <iostream>
 #include <cstdlib>
+#include <variant>
 #include <chrono>
+#include <regex>
 #include <string>
 #include <sstream>
 #include <fstream>
-#include <iomanip>
-
+#include <filesystem>
 using namespace std;
-int valid_int() {
-    int choice; cin >> choice;
-    if (cin.fail() || cin.peek() != '\n') {
-        cin.clear(); // Clear the error flag
-        cin.ignore(numeric_limits<streamsize>::max(), '\n');
-        return -1;
+
+// ----------------------------------- <input and conversion helpers> -------------------------------------------//
+
+int get_int(const string& prompt, int l = INT_MIN, int r = INT_MAX)
+{
+    int num;
+    while (true)
+    {
+        try
+        {
+            cout << endl << prompt;
+            string input; getline(cin, input, '\n');
+
+            regex num_pattern(R"(^\s*(-?\d+(?:\.\d*)?)\s*$)");
+            smatch matches;
+            if (!regex_match(input, matches, num_pattern))
+            {
+                throw invalid_argument("Not a floating-point number or an integer");
+            }
+
+            long double num_d = stold(matches[1].str());
+
+            if (num_d != (long long)(num_d))
+            {
+                cout << "Not an integer, please try again." << "\n";
+                continue;
+            }
+            else if (num = (int)num_d; !(l <= num && num <= r))
+            {
+                if (l == INT_MIN && INT_MIN <= num)
+                    cout << "Please enter a number that is at most " << r << "\n";
+                else if (r == INT_MAX && num <= INT_MAX)
+                    cout << "Please enter a number that is at least " << l << "\n";
+                else
+                {
+                    cout << "Please enter a number from " << l << " to " << r << " inclusive." << "\n";
+                    continue;
+                }
+            }
+            else break;
+        }
+        catch (...)
+        {
+            cout << "Not a number, please try again." << "\n";
+        }
     }
-    return choice;
+    return num;
 }
 
+string get_valid_text_file(const string& prompt)
+{
+    while (true)
+    {
+        cout << endl << prompt;
+        string input; getline(cin, input, '\n');
+
+        regex valid_txt_filename(R"(\s*([^.\/\\]+\.(?:txt))\s*)");
+        smatch matches;
+        regex_match(input, matches, valid_txt_filename);
+
+        if (!matches[1].matched)
+        {
+            cout << "Please provide a valid .txt filename" << "\n";
+            continue;
+        }
+        else if (!filesystem::exists(matches[1].str()))
+        {
+            cout << "`" << matches[1].str() << "` does not exist in the current directory, please provide a valid filename." << "\n";
+            continue;
+        }
+
+        string filename = matches[1].str();
+        ifstream input_file(filename);
+        if (!input_file)
+        {
+            cout << "Error accessing `" << filename << "` \nProgram terminated." << endl;
+            continue;
+        }
+        input_file.close();
+
+        return filename;
+    }
+}
+
+template<typename T>
+bool attempt_conversion(const string& s, T& dest) {
+    istringstream iss(s);
+    return (iss >> dest) && iss.eof();
+}
+
+// ----------------------------------- </input and conversion helpers> ------------------------------------------//
 
 template<typename T>
 class SortingSystem {
 private:
     T* data; // Dynamic array for storing input data
     int size; // Size of the array
+    bool repeatable = true; // loop menu if console input is used, don't if reading from a file
     int counter = 0; // counter for number of iterations needed
 
-    void countSortForRadix(T* arr, int size, long long div); // Radix Sort Helper
+    void reinitialize(); // rerun with new data (console-only)
+
+    void countSortForRadix(T* arr, int size, int div); // Radix Sort Helper
     void insertionSortForBucket(T* arr, int size); // Bucket Sort Helper
     void mergeSortImplementation(int left, int right);
     void quickSortImplementation(int left, int right);
@@ -53,7 +138,6 @@ public:
     void measureSortTime(void (SortingSystem::* sortFunc)());
 
     void showMenu(); // Display menu for user interaction
-    void inputData(T* arr,int algo_num);  // takes the input from file 
 };
 
 
@@ -62,12 +146,123 @@ public:
 template<typename T>
 SortingSystem<T>::SortingSystem(int n)
 {
+    if (n <= 0)
+        n = get_int("The number of items to sort must be a positive integer, Enter the number: ", 1);
+
     size = n;
     data = new T[size];
+
+    int input_method = get_int("Please choose your input method (1- File, 2- Console): ", 1, 2);
+
+    switch(input_method)
+    {
+        case 1:
+        {
+            repeatable = false;
+
+            string filename = get_valid_text_file("Please enter the filename for the txt file containing the input data, \n"
+                                                  "Data must be whitespace separated, file must contain a number of elements >= size\n"
+                                                  "Extra elements will be discarded: ");
+            ifstream input_file(filename);
+            T temp;
+
+            // Read exactly n elements from file
+            for(int i = 0;; i++) {
+                if(input_file.eof()) {
+                    if(i >= size) {
+                        cout << "\nRead successful\n\n";
+                        break;
+                    }
+                    cout << "\nInsufficient data in file, Program terminated.\n\n";
+                    exit(2);
+                }
+
+                input_file >> temp;
+
+                if(input_file.fail()) {
+                    if(i >= size) {
+                        // Exactly n elements retrieved, no compatible/readable data left
+                        cout << "\nRead successful\n\n";
+                        break;
+                    } else {
+                        cout << "\nDatatype mismatch or filestream error\n"
+                                "(Tip: ensure the file has data of the correct datatype.)\n"
+                                "Program terminated.\n\n";
+                        exit(2);
+                    }
+                } else if(i >= size) {
+                    // enough data extracted, excess (readable and compatible) data remaining
+                    cout << "\nRead " << size << " elements successfully. Warning: Extra data discarded\n\n";
+                    break;
+                }
+
+                data[i] = temp;
+            }
+            input_file.close();
+
+            break;
+        }
+        case 2:
+        {
+            for (int i = 0; i < size; i++)
+            {
+                while (true)
+                {
+                    cout << "\nEnter item " << (i + 1) << ": ";
+                    string input;
+                    getline(cin, input);
+
+                    regex single_element_pattern(R"(^\s*(\S+)\s*$)");
+                    smatch matches;
+                    if (!regex_match(input, matches, single_element_pattern))
+                    {
+                        cout << "\nInvalid input. Please enter exactly one item.\n\n";
+                        continue;
+                    }
+
+                    string token = matches[1].str();
+                    if (attempt_conversion(token, data[i]))
+                        break;
+                    else
+                        cout << "\nFailed to convert `" << token << "`. Ensure data is of the correct datatype.\n\n";
+                }
+            }
+            cout << "\nRead successful\n\n";
+        }
+    }
+
     srand(time(nullptr));
 }
 
+template<typename T>
+void SortingSystem<T>::reinitialize()
+{
+    size = get_int("Enter the number of items to sort: ", 1);
+    for (int i = 0; i < size; i++)
+    {
+        while (true)
+        {
+            cout << "\nEnter item " << (i + 1) << ": ";
+            string input;
+            getline(cin, input);
 
+            regex single_element_pattern(R"(^\s*(\S+)\s*$)");
+            smatch matches;
+            if (!regex_match(input, matches, single_element_pattern))
+            {
+                cout << "\nInvalid input. Please enter exactly one item.\n\n";
+                continue;
+            }
+
+            string token = matches[1].str();
+            if (attempt_conversion(token, data[i]))
+                break;
+            else
+                cout << "\nFailed to convert `" << token << "`. Ensure data is of the correct datatype.\n\n";
+        }
+    }
+    cout << "\nRead successful\n\n";
+}
 
 template<typename T>
 SortingSystem<T>::~SortingSystem()
@@ -78,7 +273,6 @@ SortingSystem<T>::~SortingSystem()
 template<typename T>
 void SortingSystem<T>::insertionSort()
 {
-    int count = 1;
     cout << "Initial Data: ";
     displayData();
     for (int i = 1, j; i < size; i++) {
@@ -89,8 +283,8 @@ void SortingSystem<T>::insertionSort()
             change = true;
         }
         data[j] = tmp;
-        if (!change) continue;
-        cout << "Iteration " << count++ << ": ";
+        if (!change) break;
+        cout << "Iteration " << i << ": ";
         displayData();
     }
     cout << "Sorted Data: ";
@@ -279,7 +473,7 @@ void SortingSystem<T>::quickSortImplementation(int left, int right)
         if (i == pivot_index - 1) {
             cout << "]";
         }
-        else{
+        else if (i > 0) {
             cout << ", ";
         }
     }
@@ -308,7 +502,7 @@ void SortingSystem<T>::quickSortImplementation(int left, int right)
 template<typename T>
 void SortingSystem<T>::countSort()
 {
-    if constexpr (std::is_same_v<T, int> || std::is_same_v<T, long long>)
+    if constexpr (std::is_same_v<T, long long>)
     {
         if (size == 0) return;
         T min_num = data[0];
@@ -318,7 +512,7 @@ void SortingSystem<T>::countSort()
             max_num = max(max_num, data[i]);
         }
         int range = max_num - min_num + 1;
-        long long* frequency_array = new long long[range]();
+        int* frequency_array = new int[range]();
 
         cout << "Initial Data: ";
         displayData();
@@ -328,20 +522,18 @@ void SortingSystem<T>::countSort()
 
         cout << "Frequency Array:\n";
         for (int i = 0; i < range; i++) {
-            if (i % 5 == 0) cout << "\n";
-            cout << min_num + i << ": " << frequency_array[i] << "  ";
+            cout << min_num + i << ": " << frequency_array[i] << "\n";
         }
-        cout << "\n";
+
         for (int i = 1; i < range; i++) {
             frequency_array[i] += frequency_array[i - 1];
         }
 
         cout << "Cumulative Frequency Array:\n";
         for (int i = 0; i < range; i++) {
-            if (i % 5 == 0) cout << "\n";
-            cout << min_num + i << ": " << frequency_array[i] << "  ";
+            cout << min_num + i << ": " << frequency_array[i] << "\n";
         }
-        cout << "\n";
+
         T* sorted_data = new T[size];
 
         for (int i = size - 1; i >= 0; i--) {
@@ -368,10 +560,10 @@ void SortingSystem<T>::countSort()
 //------------------------------------------------------------------------------------------//
 
 template<typename T>
-void SortingSystem<T>::countSortForRadix(T* arr, int size, long long div) {
-    if constexpr (std::is_same_v<T, int> || std::is_same_v<T, long long>)
+void SortingSystem<T>::countSortForRadix(T* arr, int size, int div) {
+    if constexpr (std::is_same_v<T, long long>)
     {
-        long long digits_frequency[10] = { 0 };
+        int digits_frequency[10] = { 0 };
         // Compute Frequency of each digit
         for (int i = 0; i < size; i++) {
             int index = (arr[i] / div) % 10;
@@ -415,7 +607,7 @@ void SortingSystem<T>::countSortForRadix(T* arr, int size, long long div) {
 template<typename T>
 void SortingSystem<T>::radixSort()
 {
-    if constexpr (std::is_same_v<T, int> || std::is_same_v<T, long long>)
+    if constexpr (std::is_same_v<T, long long>)
     {
         if (size == 0) return;
         cout << "Initial Data: ";
@@ -431,26 +623,29 @@ void SortingSystem<T>::radixSort()
         T* negative_nums = new T[negative_count];
 
 
-        long long max_positive = 0, max_negative = 0;
+        int max_positive = INT_MIN, max_negative = INT_MIN;
 
         int i = 0, j = 0;
         for (int k = 0; k < size; k++) {
             if (data[k] < 0) {
-                if (data[k] * -1 > max_negative) max_negative = data[k] * -1;
+                if(max_negative < data[k] * -1)
+                    max_negative = data[k] * -1;
                 negative_nums[j++] = (data[k] * -1);  // Convert to positive for sorting
             }
             else {
-                if (data[k] > max_positive) max_positive = data[k];
+                if(max_positive < data[k])
+                    max_positive = data[k];
                 positive_nums[i++] = data[k];
             }
         }
+
         cout << "\nSorting Positive Numbers:\n";
-        for (long long div = 1; max_positive / div > 0; div *= 10) {
+        for (int div = 1; max_positive / div > 0; div *= 10) {
             countSortForRadix(positive_nums, positive_count, div);
         }
 
         cout << "\nSorting Negative Numbers:\n";
-        for (long long div = 1; max_negative / div > 0; div *= 10) {
+        for (int div = 1; max_negative / div > 0; div *= 10) {
             countSortForRadix(negative_nums, negative_count, div);
         }
         T* sorted_data = new T[size];
@@ -495,7 +690,7 @@ void SortingSystem<T>::insertionSortForBucket(T* arr, int size)
 template<typename T>
 void SortingSystem<T>::bucketSort()
 {
-    if constexpr (std::is_same_v<T, int> || std::is_same_v<T, long long> || std::is_same_v<T, float> || std::is_same_v<T, double>)
+    if constexpr (std::is_same_v<T, long long>)
     {
         if (size == 0) return;
 
@@ -512,8 +707,11 @@ void SortingSystem<T>::bucketSort()
         T** buckets = new T * [buckets_num];
         int* bucket_length = new int[buckets_num]();
         for (int i = 0; i < size; i++) {
-            int bucket_index = (data[i] - min_num) / interval;
-            if (bucket_index > buckets_num - 1) bucket_index = buckets_num - 1;
+            int bucket_index;
+            if(((data[i] - min_num) / interval) < (buckets_num - 1))
+                bucket_index = ((data[i] - min_num) / interval);
+            else
+                bucket_index = (buckets_num - 1);
             ++bucket_length[bucket_index];
         }
 
@@ -526,8 +724,12 @@ void SortingSystem<T>::bucketSort()
         // Assign elements to buckets
         cout << "\nBucket Assignments:\n";
         for (int i = 0; i < size; i++) {
-            int bucket_index = (data[i] - min_num) / interval;
-            if (bucket_index > buckets_num - 1) bucket_index = buckets_num - 1;
+            int bucket_index;
+            if(((data[i] - min_num) / interval) < (buckets_num - 1))
+                bucket_index = ((data[i] - min_num) / interval);
+            else
+                bucket_index = (buckets_num - 1);
+            ++bucket_length[bucket_index];
             buckets[bucket_index][buckets_current_index[bucket_index]] = data[i];
             ++buckets_current_index[bucket_index];
             cout << "Element " << data[i] << " -> Bucket " << bucket_index + 1 << "\n";
@@ -594,170 +796,93 @@ void SortingSystem<T>::displayData()
 template<typename T>
 void SortingSystem<T>::measureSortTime(void (SortingSystem::* sortFunc)())
 {
-    using milliseconds = std::chrono::duration<long long, std::milli>;
     auto start = std::chrono::steady_clock::now();
     (this->*sortFunc)();
     auto end = std::chrono::steady_clock::now();
-    auto duration = (std::chrono::duration_cast<milliseconds>(end - start)).count();
-    cout << fixed << setprecision(6);
-    cout << "\nSorting Time: " << (duration < 1.0 ? "<" : "") << duration / 1e6 << " seconds\n";
+    auto duration = std::chrono::duration_cast<std::chrono::nanoseconds>(end - start).count();
+    std::cout << "\nTime taken: " << duration/((long double)1e6) << " ms" << std::endl;
 }
 
-//------------------------------------------------------------------------------------------//
-template<typename T>
-void SortingSystem<T>::inputData(T* arr, int algo_num)
-{
-    for (int i = 0; i < size; i++) {
-        data[i] = arr[i];
-    }
-    switch (algo_num)
-    {
-    case 1:
-        cout << "\nSorting using Insertion Sort...\n";
-        measureSortTime(&SortingSystem<T>::insertionSort);
-        break;
-    case 2:
-        cout << "\nSorting using Selection Sort...\n";
-        measureSortTime(&SortingSystem<T>::selectionSort);
-        break;
-    case 3:
-        cout << "\nSorting using Bubble Sort...\n";
-        measureSortTime(&SortingSystem<T>::bubbleSort);
-        break;
-    case 4:
-        cout << "\nSorting using Shell Sort...\n";
-        measureSortTime(&SortingSystem<T>::shellSort);
-        break;
-    case 5:
-        cout << "\nSorting using Merge Sort...\n";
-        measureSortTime(&SortingSystem<T>::mergeSort);
-        break;
-    case 6:
-        cout << "\nSorting using Quick Sort...\n";
-        measureSortTime(&SortingSystem<T>::quickSort);
-        break;
-    case 7:
-        cout << "\nSorting using Count Sort...\n";
-        measureSortTime(&SortingSystem<T>::countSort);
-        break;
-    case 8:
-        cout << "\nSorting using Radix Sort...\n";
-        measureSortTime(&SortingSystem<T>::radixSort);
-        break;
-    case 9:
-        cout << "\nSorting using Bucket Sort...\n";
-        measureSortTime(&SortingSystem<T>::bucketSort);
-        break;
-    }
-}
-
-//------------------------------------------------------------------------------------------//
 template<typename T>
 void SortingSystem<T>::showMenu()
 {
-    cout << "\n\n";
- 
-    for (int i = 0; i < size; i++) {
-        cout << "Enter Data " << i + 1 << ": ";
-        cin >> data[i];
-        if (cin.fail() || cin.peek() != '\n') {
-            cin.clear(); // Clear the error flag
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << "Error: Your input doesn't match the data type you chose!\n";
-            return;
-        }
-    }
-    int algo_choice;
-    bool int_only = false;
-    cin.clear();
-    do {
-        cout << "\n\n";
-        cout << "Select a sorting algorithm:\n";
-        cout << "[1] Insertion Sort\n"
-            << "[2] Selection Sort\n"
-            << "[3] Bubble Sort\n"
-            << "[4] Shell Sort\n"
-            << "[5] Merge Sort\n"
-            << "[6] Quick Sort\n"
-            << "[7] Count Sort (Only for integers)\n"
-            << "[8] Radix Sort (Only for integers)\n"
-            << "[9] Bucket Sort (Only for numbers (int - long long - float - double) )\n";
-        cout << "Choose the sorting algorithm(1-9): ";
-        algo_choice = valid_int();
-        if (algo_choice < 1 || algo_choice > 9) {
-            cout << "Invalid Choice!\n";
-        }
-        else {
-            break;
-        }
-    } while (true);
-    if (algo_choice == 7 || algo_choice == 8) int_only = true;
+    while(true)
+    {
 
-    if (int_only)
-    {
-        if constexpr (!std::is_same_v<T, int> && !std::is_same_v<T, long long>)
+        int algo_choice;
+        bool int_only = false;
+
+        cout << "1. Insertion Sort\n" << "2. Selection Sort\n" << "3. Bubble Sort \n" << "4. Shell Sort\n" << "5. Merge Sort\n" << "6. Quick Sort\n" << "7. Count Sort\n" << "8. Bucket Sort\n" << "9. Radix Sort\n";
+        algo_choice = get_int("Choose the sorting algorithm (1-9): ", 1, 9);
+        if(algo_choice == 7 || algo_choice == 8) int_only = true;
+
+        if(int_only)
         {
-            cout << "\nOnly integer types (int, long long) are supported by the selected algorithm, Program Terminated.\n\n";
-            exit(3);
-        }
-    }
-    else
-    {
-        if constexpr (std::is_same_v<T, char> || std::is_same_v<T, std::string> )
-        {
-            if (algo_choice == 9) {
-                cout << "\nOnly Numbers (int - long long - float - double) are supported by Bucket Sort ALgorithm, Program Terminated.\n\n";
+            if constexpr(!std::is_same_v<T, long long>)
+            {
+                cout << "\nOnly integers are supported by the selected algorithm, Program Terminated.\n\n";
                 exit(3);
             }
         }
-    }
 
-    switch (algo_choice)
-    {
-    case 1:
-        cout << "\nSorting using Insertion Sort...\n";
-        measureSortTime(&SortingSystem<T>::insertionSort);
-        break;
-    case 2:
-        cout << "\nSorting using Selection Sort...\n";
-        measureSortTime(&SortingSystem<T>::selectionSort);
-        break;
-    case 3:
-        cout << "\nSorting using Bubble Sort...\n";
-        measureSortTime(&SortingSystem<T>::bubbleSort);
-        break;
-    case 4:
-        cout << "\nSorting using Shell Sort...\n";
-        measureSortTime(&SortingSystem<T>::shellSort);
-        break;
-    case 5:
-        cout << "\nSorting using Merge Sort...\n";
-        measureSortTime(&SortingSystem<T>::mergeSort);
-        break;
-    case 6:
-        cout << "\nSorting using Quick Sort...\n";
-        measureSortTime(&SortingSystem<T>::quickSort);
-        break;
-    case 7:
-        cout << "\nSorting using Count Sort...\n";
-        measureSortTime(&SortingSystem<T>::countSort);
-        break;
-    case 8:
-        cout << "\nSorting using Radix Sort...\n";
-        measureSortTime(&SortingSystem<T>::radixSort);
-        break;
-    case 9:
-        cout << "\nSorting using Bucket Sort...\n";
-        measureSortTime(&SortingSystem<T>::bucketSort);
-        break;
-    }
-    
+        if constexpr(!std::is_same_v<T, long long> && !std::is_same_v<T, long double> && !std::is_same_v<T, std::string>)
+        {
+            cout << "\nOnly integers, floating-point numbers, and text are supported, Program Terminated.\n\n";
+            exit(3);
+        }
 
-    
+
+        switch(algo_choice)
+        {
+            case 1:
+                measureSortTime(&SortingSystem<T>::insertionSort);
+                break;
+            case 2:
+                measureSortTime(&SortingSystem<T>::selectionSort);
+                break;
+            case 3:
+                measureSortTime(&SortingSystem<T>::bubbleSort);
+                break;
+            case 4:
+                measureSortTime(&SortingSystem<T>::shellSort);
+                break;
+            case 5:
+                measureSortTime(&SortingSystem<T>::mergeSort);
+                break;
+            case 6:
+                measureSortTime(&SortingSystem<T>::quickSort);
+                break;
+            case 7:
+                measureSortTime(&SortingSystem<T>::countSort);
+                break;
+            case 8:
+                measureSortTime(&SortingSystem<T>::radixSort);
+                break;
+            case 9:
+                measureSortTime(&SortingSystem<T>::bucketSort);
+                break;
+        }
+
+        displayData();
+
+        if(!repeatable)
+        {
+            cout << "Thanks for using our program!\n";
+            exit(0);
+        }
+
+        bool quit = get_int("Do you want to rerun with new data (console-only)? \n0- Yes, continue \n1- No, quit. \nChoose (0/1): ", 0, 1);
+        if(quit)
+        {
+            cout << "\nThanks for using our program!\n";
+            exit(0);
+        }
+        else
+            reinitialize();
+    }
 }
 
 //--------------------------------------- </IMPLEMENTATION> ---------------------------------------//
 
 
-#endif 
-
+#endif
