@@ -1,16 +1,18 @@
 #ifndef STATISTICALCALCULATION_H
 #define STATISTICALCALCULATION_H
 #include <iostream>
+#include <fstream>
 using namespace std;
 
 template <typename T>
 class StatisticalCalculation {
 private:
     T* data;
-    int size;
+    long long size;
 
 public:
-    StatisticalCalculation(int size);
+    StatisticalCalculation(long long size);
+    StatisticalCalculation(ifstream& inputFile);
     ~StatisticalCalculation();
 
     //Statistical calculations
@@ -31,9 +33,19 @@ public:
 
 //Statistical calculations
 template <typename T>
-StatisticalCalculation<T>::StatisticalCalculation(int size) {
+StatisticalCalculation<T>::StatisticalCalculation(long long size) {
     this->size = size;
     data = new T[size];
+}
+
+template <typename T>
+StatisticalCalculation<T>::StatisticalCalculation(ifstream& inputFile) {
+    inputFile >> size;
+    data = new T[size];
+    for (long long i = 0; i < size; i++) {
+        inputFile >> data[i];
+    }
+    sort();
 }
 
 template <typename T>
@@ -42,9 +54,9 @@ StatisticalCalculation<T>::~StatisticalCalculation() {
 }
 
 template<typename T>
-void StatisticalCalculation<T>::sort() { //remove sort
-    for (int i = 0; i < size; i++) {
-        for (int j = 0; j < size; j++) {
+void StatisticalCalculation<T>::sort() {
+    for (long long i = 0; i < size; i++) {
+        for (long long j = 0; j < size; j++) {
             if (data[i] < data[j]) {
                 T temp = data[i];
                 data[i] = data[j];
@@ -82,7 +94,7 @@ double StatisticalCalculation<T>::findMean() {
 template<typename T>
 T StatisticalCalculation<T>::findSummation() {
     T sum = 0;
-    for (int i = 0; i < size; i++) {
+    for (long long i = 0; i < size; i++) {
         sum += data[i];
     }
     return sum;
@@ -91,15 +103,18 @@ T StatisticalCalculation<T>::findSummation() {
 //Utility funcitons
 template<typename T>
 void StatisticalCalculation<T>::displayArray() {
-    for (int i = 0; i < size; i++) {
-        cout << data[i] << ", ";
+    bool first = true;
+    for (long long i = 0; i < size; i++) {
+        if (!first) cout << " , ";
+        cout << data[i];
+        first = false;
     }
 }
 
 template<typename T>
 void StatisticalCalculation<T>::inputData() {
     cout << endl;
-    for (int i = 0; i < size; i++) {
+    for (long long i = 0; i < size; i++) {
         cout << "Enter element " << i + 1 << ": ";
         cin >> data[i];
     }
@@ -112,49 +127,50 @@ void StatisticalCalculation<T>::statisticsMenu() {
     int choice;
 
     do {
-        std::cout << "Select a statistical calculation:" << endl;
-        std::cout << "1. Find Median" << endl;
-        std::cout << "2. Find Minimum" << endl;
-        std::cout << "3. Find Maximum" << endl;
-        std::cout << "4. Find Mean" << endl;
-        std::cout << "5. Find Summation" << endl;
-        std::cout << "6. Display Sorted Array" << endl;
-        std::cout << "7. Exit" << endl;
-        std::cout << "Enter your choice: ";
+        cout << endl;
+        cout << "Select a statistical calculation:" << endl;
+        cout << "1. Find Median" << endl;
+        cout << "2. Find Minimum" << endl;
+        cout << "3. Find Maximum" << endl;
+        cout << "4. Find Mean" << endl;
+        cout << "5. Find Summation" << endl;
+        cout << "6. Display Sorted Array" << endl;
+        cout << "7. Exit" << endl;
+        cout << "Enter your choice: ";
 
-        // Input validation
-        if (!(std::cin >> choice)) {  // Check if input is invalid
-            std::cout << "Invalid input! Please enter a number between 1 and 7.\n";
-            std::cin.clear();  // Clear the error flag
-            std::cin.ignore(10000, '\n');  // Ignore invalid input
-            continue;  // Restart loop
+        if (!(cin >> choice)) {
+            cout << "Invalid input! Please enter a number between 1 and 7.\n";
+            cin.clear();
+            cin.ignore(10000, '\n');
+            continue;
         }
 
         switch (choice) {
             case 1:
-                std::cout << "Median: " << findMedian() << std::endl;
-            break;
+                cout << "Median: " << findMedian() << std::endl;
+                break;
             case 2:
-                std::cout << "Minimum: " << findMin() << std::endl;
-            break;
+                cout << "Minimum: " << findMin() << std::endl;
+                break;
             case 3:
-                std::cout << "Maximum: " << findMax() << std::endl;
+                cout << "Maximum: " << findMax() << std::endl;
             break;
             case 4:
-                std::cout << "Mean: " << findMean() << std::endl;
-            break;
+                cout << "Mean: " << findMean() << std::endl;
+                break;
             case 5:
-                std::cout << "Summation: " << findSummation() << std::endl;
-            break;
+                cout << "Summation: " << findSummation() << std::endl;
+                break;
             case 6:
                 displayArray();
-            break;
+                break;
             case 7:
-                std::cout << "Exiting menu...\n";
+                cout << "Exiting menu...\n";
             break;
             default:
-                std::cout << "Invalid choice! Please enter a number between 1 and 7.\n";
+                cout << "Invalid choice! Please enter a number between 1 and 7.\n";
         }
     } while (choice != 7);
 }
+
 #endif
