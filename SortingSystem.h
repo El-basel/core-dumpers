@@ -812,7 +812,7 @@ void SortingSystem<T>::showMenu()
         int algo_choice;
         bool int_only = false;
 
-        cout << "1. Insertion Sort\n" << "2. Selection Sort\n" << "3. Bubble Sort \n" << "4. Shell Sort\n" << "5. Merge Sort\n" << "6. Quick Sort\n" << "7. Count Sort\n" << "8. Bucket Sort\n" << "9. Radix Sort\n";
+        cout << "1. Insertion Sort\n" << "2. Selection Sort\n" << "3. Bubble Sort \n" << "4. Shell Sort\n" << "5. Merge Sort\n" << "6. Quick Sort\n" << "7. Count Sort\n" << "8. Radix Sort\n" << "9. Bucket Sort\n";
         algo_choice = get_int("Choose the sorting algorithm (1-9): ", 1, 9);
         if(algo_choice == 7 || algo_choice == 8) int_only = true;
 
