@@ -273,6 +273,7 @@ SortingSystem<T>::~SortingSystem()
 template<typename T>
 void SortingSystem<T>::insertionSort()
 {
+    int count = 1;
     cout << "Initial Data: ";
     displayData();
     for (int i = 1, j; i < size; i++) {
@@ -283,8 +284,8 @@ void SortingSystem<T>::insertionSort()
             change = true;
         }
         data[j] = tmp;
-        if (!change) break;
-        cout << "Iteration " << i << ": ";
+        if (!change) continue;
+        cout << "Iteration " << count++ << ": ";
         displayData();
     }
     cout << "Sorted Data: ";
@@ -810,17 +811,27 @@ void SortingSystem<T>::showMenu()
     {
 
         int algo_choice;
-        bool int_only = false;
+        bool int_only = false, numeric_only = false;
 
         cout << "1. Insertion Sort\n" << "2. Selection Sort\n" << "3. Bubble Sort \n" << "4. Shell Sort\n" << "5. Merge Sort\n" << "6. Quick Sort\n" << "7. Count Sort\n" << "8. Radix Sort\n" << "9. Bucket Sort\n";
         algo_choice = get_int("Choose the sorting algorithm (1-9): ", 1, 9);
         if(algo_choice == 7 || algo_choice == 8) int_only = true;
+        if(algo_choice == 9) numeric_only = true;
 
         if(int_only)
         {
             if constexpr(!std::is_same_v<T, long long>)
             {
                 cout << "\nOnly integers are supported by the selected algorithm, Program Terminated.\n\n";
+                exit(3);
+            }
+        }
+
+        if(numeric_only)
+        {
+            if constexpr(!std::is_same_v<T, long long> && !std::is_same_v<T, long double>)
+            {
+                cout << "\nOnly numbers are supported by the selected algorithm, Program Terminated.\n\n";
                 exit(3);
             }
         }
