@@ -874,8 +874,6 @@ void SortingSystem<T>::showMenu()
                 break;
         }
 
-        displayData();
-
         if(!repeatable)
         {
             cout << "Thanks for using our program!\n";
