@@ -691,7 +691,7 @@ void SortingSystem<T>::insertionSortForBucket(T* arr, int size)
 template<typename T>
 void SortingSystem<T>::bucketSort()
 {
-    if constexpr (std::is_same_v<T, long long>)
+    if constexpr (std::is_same_v<T, int> || std::is_same_v<T, long long> || std::is_same_v<T, float> || std::is_same_v<T, double>)
     {
         if (size == 0) return;
 
@@ -708,11 +708,8 @@ void SortingSystem<T>::bucketSort()
         T** buckets = new T * [buckets_num];
         int* bucket_length = new int[buckets_num]();
         for (int i = 0; i < size; i++) {
-            int bucket_index;
-            if(((data[i] - min_num) / interval) < (buckets_num - 1))
-                bucket_index = ((data[i] - min_num) / interval);
-            else
-                bucket_index = (buckets_num - 1);
+            int bucket_index = (data[i] - min_num) / interval;
+            if (bucket_index > buckets_num - 1) bucket_index = buckets_num - 1;
             ++bucket_length[bucket_index];
         }
 
@@ -725,12 +722,8 @@ void SortingSystem<T>::bucketSort()
         // Assign elements to buckets
         cout << "\nBucket Assignments:\n";
         for (int i = 0; i < size; i++) {
-            int bucket_index;
-            if(((data[i] - min_num) / interval) < (buckets_num - 1))
-                bucket_index = ((data[i] - min_num) / interval);
-            else
-                bucket_index = (buckets_num - 1);
-            ++bucket_length[bucket_index];
+            int bucket_index = (data[i] - min_num) / interval;
+            if (bucket_index > buckets_num - 1) bucket_index = buckets_num - 1;
             buckets[bucket_index][buckets_current_index[bucket_index]] = data[i];
             ++buckets_current_index[bucket_index];
             cout << "Element " << data[i] << " -> Bucket " << bucket_index + 1 << "\n";
@@ -768,8 +761,6 @@ void SortingSystem<T>::bucketSort()
             }
         }
 
-        cout << "\nFinal Sorted Data: ";
-        displayData();
 
         for (int i = 0; i < buckets_num; i++) {
             delete[] buckets[i];
