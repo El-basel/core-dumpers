@@ -761,6 +761,8 @@ void SortingSystem<T>::bucketSort()
             }
         }
 
+        cout << "\nFinal Sorted Data: ";
+        displayData();
 
         for (int i = 0; i < buckets_num; i++) {
             delete[] buckets[i];
