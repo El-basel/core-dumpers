@@ -691,7 +691,7 @@ void SortingSystem<T>::insertionSortForBucket(T* arr, int size)
 template<typename T>
 void SortingSystem<T>::bucketSort()
 {
-    if constexpr (std::is_same_v<T, int> || std::is_same_v<T, long long> || std::is_same_v<T, float> || std::is_same_v<T, double>)
+    if constexpr (std::is_same_v<T, long long> || std::is_same_v<T, long double>)
     {
         if (size == 0) return;
 
