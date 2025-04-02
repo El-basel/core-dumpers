@@ -15,6 +15,7 @@ public:
     std::string_view get_date();
     void update_invitation(std::string new_date);
     bool operator<(Guest& right_operand);
+    Guest& operator=(const Guest& guest);
 };
 
 class iftarManager{
@@ -25,7 +26,7 @@ public:
     void add_guest(Guest& guest);
     void display_all_guests();
     void update_guest_invitation(std::string name, std::string new_date);
-    void send_reminder();
+    void send_reminder(std::string date);
     void sort_guest_list();
     void remove_guest(std::string name);
     ~iftarManager();
