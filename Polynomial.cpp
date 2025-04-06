@@ -46,6 +46,7 @@ void Polynomial::print() {
         if (this->coefficients[i] == 0) continue;
 
         //Print signs
+        if (first && sign(this->coefficients[i]) == '-') cout << sign(this->coefficients[i]) << " ";
         if (!first) cout << " " << sign(this->coefficients[i]) << " ";
 
         //Skip printing 1's and -1's multiplied by x (except the constant)
@@ -77,7 +78,7 @@ Polynomial Polynomial::add(Polynomial& secondAddend) {
 
     //Add the RHS
     result.rhs = this->rhs + secondAddend.rhs;
-    
+
     return result;
 }
 
@@ -96,7 +97,7 @@ Polynomial Polynomial::subtract(Polynomial& minuend) {
 
     //Subtract the RHS
     result.rhs = this->rhs - minuend.rhs;
-    
+
     return result;
 }
 
