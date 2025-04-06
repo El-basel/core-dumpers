@@ -2,8 +2,37 @@
 #include <string_view>
 #include <regex>
 #include <algorithm>
-#include "iftarManagement.h"
 
+class Guest {
+private:
+    std::string name;
+    std::string contact;
+    std::string iftar_date;
+public:
+    Guest() = default;
+    Guest(std::string p_name, std::string p_contact, std::string p_iftar_date);
+    Guest(Guest& guest);
+    void display_guest();
+    std::string_view get_name();
+    std::string_view get_date();
+    void update_invitation(std::string new_date);
+    bool operator<(Guest& right_operand);
+    Guest& operator=(const Guest& guest);
+};
+
+class iftarManager{
+private:
+    Guest* guest_list = nullptr;
+    int length = 0;
+public:
+    void add_guest(Guest& guest);
+    void display_all_guests();
+    void update_guest_invitation(std::string name, std::string new_date);
+    void send_reminder(std::string date);
+    void sort_guest_list();
+    void remove_guest(std::string name);
+    ~iftarManager();
+};
 
 void merge(Guest* arr, Guest* leftArr, Guest* rightArr,
            int left, int middle, int right) {
@@ -120,24 +149,23 @@ void iftarManager::sort_guest_list() {
 void iftarManager::remove_guest(std::string name) {
     int new_length = length;
     std::string lowercase;
-    for (int i = 0; i < name.length(); ++i) {
-        name[i] = std::tolower(name[i]);
-    }
+
+    std::transform(name.begin(), name.end(), name.begin(), [] (char c) { return std::tolower(c);});
     for (int i = 0; i < length; ++i) {
         lowercase = guest_list[i].get_name();
-        for (int k = 0; k < guest_list[i].get_name().length(); ++k) {
-            lowercase[k] =  std::tolower(guest_list[i].get_name()[k]);
-        }
+        std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(), [] (char c) { return std::tolower(c);});
         if(lowercase == name) {
             --new_length;
         }
     }
+    // if the guest is not in the list
+    if(new_length == length) {
+        return;
+    }
     Guest* new_list = new Guest[new_length];
     for (int i = 0,j = 0; i < length; ++i) {
         lowercase = guest_list[i].get_name();
-        for (int k = 0; k < guest_list[i].get_name().length(); ++k) {
-            lowercase[k] =  std::tolower(guest_list[i].get_name()[k]);
-        }
+        std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(), [] (char c) { return std::tolower(c);});
         if(lowercase == name) {
             continue;
         }
@@ -222,9 +250,9 @@ void send_reminder(iftarManager& manager) {
 }
 
 int main() {
-    std::cout << "|--------------------------|\n";
+    std::cout << "----------------------------\n";
     std::cout << "| Welcome to Iftar Manager |\n";
-    std::cout << "|--------------------------|\n";
+    std::cout << "----------------------------\n";
     std::string choice;
     int choiceInt = 0;
     iftarManager manager;
@@ -237,19 +265,47 @@ int main() {
         Guest guest1 = Guest("aisha", "aisha@example.com", "2025-03-15");
         Guest guest2 = Guest("omar", "omar@example.com", "2025-03-18");
         Guest guest3 = Guest("zainab", "zainab@example.com", "2025-03-20");
-
+        Guest guest4 = Guest("Emad", "emad@example.com", "2025-03-17");
+        std::cout << "-------------\n";
+        std::cout << "Adding Guests\n";
+        std::cout << "-------------\n";
         manager.add_guest(guest1);
         manager.add_guest(guest3);
         manager.add_guest(guest2);
+        manager.add_guest(guest4);
         manager.display_all_guests();
-        std::cout << "----------\n";
-        std::cout << "After sort\n";
-        std::cout << "----------\n";
+        std::cout << "--------------\n";
+        std::cout << "Sorting guests\n";
+        std::cout << "--------------\n";
         manager.sort_guest_list();
         manager.display_all_guests();
+        std::cout << "-------------\n";
+        std::cout << "Adding Guests\n";
+        std::cout << "-------------\n";
+        Guest guest5 = Guest("Adam", "adam@example.com", "2025-03-23");
+        Guest guest6 = Guest("Mariam", "mariam@example.com", "2025-03-15");
+        manager.add_guest(guest5);
+        manager.add_guest(guest6);
+        manager.display_all_guests();
+        std::cout << "--------------------------\n";
+        std::cout << "Updating guests invitation\n";
+        std::cout << "--------------------------\n";
         manager.update_guest_invitation("omar", "2025-03-15");
+        manager.display_all_guests();
+        std::cout << "--------------\n";
+        std::cout << "Sorting guests\n";
+        std::cout << "--------------\n";
+        manager.sort_guest_list();
+        manager.display_all_guests();
+        std::cout << "-----------------\n";
+        std::cout << "Sending reminders\n";
+        std::cout << "-----------------\n";
         manager.send_reminder("2025-03-15");
-        manager.remove_guest("omar");
+        std::cout << "---------------\n";
+        std::cout << "Removing guests\n";
+        std::cout << "---------------\n";
+        manager.remove_guest("Omar");
+        manager.remove_guest("aisha");
         manager.display_all_guests();
     } else if(choiceInt == 2) {
         while (true) {
