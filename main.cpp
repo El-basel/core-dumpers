@@ -29,9 +29,12 @@ void runTest() {
         exit(0);
     }
 
+    int counter = 1;
     while (!inputFile.eof()) {
+        cout << "Test Number: " << counter++ << endl;
         StatisticalCalculation<double> test(inputFile);
         startTest(test);
+        cout << endl;
     }
 }
 
