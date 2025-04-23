@@ -2,6 +2,19 @@
 #include <string_view>
 #include <regex>
 #include <algorithm>
+#include <curl/curl.h>
+
+
+std::size_t payload_source(void *ptr, std::size_t size, std::size_t nmemb, void *userp) {
+    const char **payload = (const char **)userp;
+    if (*payload) {
+        size_t len = strlen(*payload);
+        memcpy(ptr, *payload, len);
+        *payload = nullptr;
+        return len;
+    }
+    return 0;
+}
 
 class Guest {
 private:
@@ -13,8 +26,9 @@ public:
     Guest(std::string p_name, std::string p_contact, std::string p_iftar_date);
     Guest(Guest& guest);
     void display_guest();
-    std::string_view get_name();
-    std::string_view get_date();
+    std::string get_name();
+    std::string get_date();
+    std::string get_contact();
     void update_invitation(std::string new_date);
     bool operator<(Guest& right_operand);
     Guest& operator=(const Guest& guest);
@@ -86,13 +100,15 @@ void Guest::display_guest() {
     std::cout << "Guest: " << name << ", Contact: " << contact
               << ", Iftar Date: " << iftar_date << std::endl;
 }
-std::string_view Guest::get_name() {
+std::string Guest::get_name() {
     return name;
 }
-std::string_view Guest::get_date() {
+std::string Guest::get_date() {
     return iftar_date;
 }
-
+std::string Guest::get_contact() {
+    return contact;
+}
 void Guest::update_invitation(std::string new_date) {iftar_date = new_date;}
 bool Guest::operator<(Guest& right_operand) {
     for (int i = 0; i < iftar_date.length(); i++) {
@@ -136,9 +152,43 @@ void iftarManager::update_guest_invitation(std::string name, std::string new_dat
 }
 void iftarManager::send_reminder(std::string date) {
     for (int i = 0; i < length; ++i) {
-        if(guest_list[i].get_date() == date) {
+        if (guest_list[i].get_date() == date) {
             std::cout << "Reminder sent to " << guest_list[i].get_name()
-            << ": Your iftar invitation is on " << guest_list[i].get_date() << std::endl;
+                      << ": Your iftar invitation is on " << guest_list[i].get_date() << std::endl;
+            std::string invitationDate =
+                    "Subject: Invitation date reminder\r\n"
+                    "\r\n"
+                    "Your invitation is on ";
+            invitationDate.append(guest_list[i].get_date());
+            invitationDate.append("\r\n");
+            CURL *curl = curl_easy_init();
+            if (curl) {
+                CURLcode res;
+                struct curl_slist *recipients = NULL;
+                const char *payload =  invitationDate.c_str();
+                const char* recipientEmail = guest_list[i].get_contact().c_str();
+
+                curl_easy_setopt(curl, CURLOPT_URL, "smtp://smtp.gmail.com:587");
+                curl_easy_setopt(curl, CURLOPT_USE_SSL, (long) CURLUSESSL_ALL);
+                curl_easy_setopt(curl, CURLOPT_CAINFO, "cacert.pem");
+                curl_easy_setopt(curl, CURLOPT_USERNAME, "core.dumpersds@gmail.com");
+                curl_easy_setopt(curl, CURLOPT_PASSWORD, "baljqiazisinfops");
+
+                curl_easy_setopt(curl, CURLOPT_MAIL_FROM, "core.dumpersds@gmail.com");
+                recipients = curl_slist_append(recipients, guest_list[i].get_contact().c_str());
+                curl_easy_setopt(curl, CURLOPT_MAIL_RCPT, recipients);
+
+                curl_easy_setopt(curl, CURLOPT_READFUNCTION, payload_source);
+                curl_easy_setopt(curl, CURLOPT_READDATA, &payload);
+                curl_easy_setopt(curl, CURLOPT_UPLOAD, 1L);
+
+                res = curl_easy_perform(curl);
+                if (res != CURLE_OK)
+                    std::cerr << "Error: " << curl_easy_strerror(res) << "\n";
+
+                curl_slist_free_all(recipients);
+                curl_easy_cleanup(curl);
+            }
         }
     }
 }
@@ -262,8 +312,8 @@ int main() {
     std::cin >> choice;
     choiceInt = validateChoice(choice);
     if(choiceInt == 1) {
-        Guest guest1 = Guest("aisha", "aisha@example.com", "2025-03-15");
-        Guest guest2 = Guest("omar", "omar@example.com", "2025-03-18");
+        Guest guest1 = Guest("aisha", "openweathermap.oxymoron727@passinbox.com", "2025-03-15");
+        Guest guest2 = Guest("omar", "openweathermap.oxymoron727@passinbox.com", "2025-03-18");
         Guest guest3 = Guest("zainab", "zainab@example.com", "2025-03-20");
         Guest guest4 = Guest("Emad", "emad@example.com", "2025-03-17");
         std::cout << "-------------\n";
@@ -283,7 +333,7 @@ int main() {
         std::cout << "Adding Guests\n";
         std::cout << "-------------\n";
         Guest guest5 = Guest("Adam", "adam@example.com", "2025-03-23");
-        Guest guest6 = Guest("Mariam", "mariam@example.com", "2025-03-15");
+        Guest guest6 = Guest("Mariam", "openweathermap.oxymoron727@passinbox.com", "2025-03-15");
         manager.add_guest(guest5);
         manager.add_guest(guest6);
         manager.display_all_guests();
