@@ -198,13 +198,9 @@ void iftarManager::sort_guest_list() {
 
 void iftarManager::remove_guest(std::string name) {
     int new_length = length;
-    std::string lowercase;
 
-    std::transform(name.begin(), name.end(), name.begin(), [] (char c) { return std::tolower(c);});
     for (int i = 0; i < length; ++i) {
-        lowercase = guest_list[i].get_name();
-        std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(), [] (char c) { return std::tolower(c);});
-        if(lowercase == name) {
+        if(guest_list[i].get_name() == name) {
             --new_length;
         }
     }
@@ -214,9 +210,7 @@ void iftarManager::remove_guest(std::string name) {
     }
     Guest* new_list = new Guest[new_length];
     for (int i = 0,j = 0; i < length; ++i) {
-        lowercase = guest_list[i].get_name();
-        std::transform(lowercase.begin(), lowercase.end(), lowercase.begin(), [] (char c) { return std::tolower(c);});
-        if(lowercase == name) {
+        if(guest_list[i].get_name() == name) {
             continue;
         }
         new_list[j] = guest_list[i];
@@ -312,8 +306,8 @@ int main() {
     std::cin >> choice;
     choiceInt = validateChoice(choice);
     if(choiceInt == 1) {
-        Guest guest1 = Guest("aisha", "openweathermap.oxymoron727@passinbox.com", "2025-03-15");
-        Guest guest2 = Guest("omar", "openweathermap.oxymoron727@passinbox.com", "2025-03-18");
+        Guest guest1 = Guest("aisha", "20230376@stud.fci-cu.edu.eg", "2025-03-15");
+        Guest guest2 = Guest("omar", "20230376@stud.fci-cu.edu.eg", "2025-03-18");
         Guest guest3 = Guest("zainab", "zainab@example.com", "2025-03-20");
         Guest guest4 = Guest("Emad", "emad@example.com", "2025-03-17");
         std::cout << "-------------\n";
@@ -333,7 +327,7 @@ int main() {
         std::cout << "Adding Guests\n";
         std::cout << "-------------\n";
         Guest guest5 = Guest("Adam", "adam@example.com", "2025-03-23");
-        Guest guest6 = Guest("Mariam", "openweathermap.oxymoron727@passinbox.com", "2025-03-15");
+        Guest guest6 = Guest("Mariam", "20230376@stud.fci-cu.edu.eg", "2025-03-15");
         manager.add_guest(guest5);
         manager.add_guest(guest6);
         manager.display_all_guests();
@@ -354,7 +348,7 @@ int main() {
         std::cout << "---------------\n";
         std::cout << "Removing guests\n";
         std::cout << "---------------\n";
-        manager.remove_guest("Omar");
+        manager.remove_guest("omar");
         manager.remove_guest("aisha");
         manager.display_all_guests();
     } else if(choiceInt == 2) {
