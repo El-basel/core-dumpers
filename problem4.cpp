@@ -35,8 +35,8 @@ public:
 
 class Priority_Queue {
 private:
-    Patient* patients;
-    int length;
+    Patient* patients = nullptr;
+    int length = 0;
     void max_heapify(int low, int high) {
         Patient tmp = patients[low];
         int largest = 2 * low + 1;
