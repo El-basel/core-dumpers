@@ -3,6 +3,7 @@
 #include "DynamicArray.h"
 #include <fstream>
 #include <sstream>
+#include <string>
 
 using namespace std;
 
@@ -21,12 +22,14 @@ int minNumberOfSegmentFlips(DynamicArray<int>& arr, int k) { // Time Complexity:
     return flips.isEmpty() ? count : -1;
 }
 void readTestCasesFromFile(const string& filename) {
+
     ifstream file(filename);
     if (!file) {
         cout << "Error opening file: " << filename << '\n';
         return;
     }
 
+    cout << "\n";
     string line;
     int testNum = 1;
 
@@ -54,6 +57,7 @@ void readTestCasesFromFile(const string& filename) {
         }
 
         cout << "Test " << testNum << ": " << minNumberOfSegmentFlips(arr, k) << '\n';
+        cout << "\n" << string(90, '-') << "\n\n";
         testNum++;
     }
 
