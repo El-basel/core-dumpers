@@ -35,8 +35,8 @@ public:
 
 class Priority_Queue {
 private:
-    Patient* patients;
-    int length;
+    Patient* patients = nullptr;
+    int length = 0;
     void max_heapify(int low, int high) {
         Patient tmp = patients[low];
         int largest = 2 * low + 1;
@@ -56,6 +56,15 @@ private:
         }
         patients[low] = tmp;
     }
+    void bubble_up(int i){
+        while(i > 0) {
+            int p = i/2;
+            if(patients[i] > patients[p]){
+                std::swap(patients[i], patients[p]);
+                i = p;
+            } else break;
+        }
+    }
 public:
     void insert(Patient p) {
         if(length == 0) {
@@ -70,9 +79,7 @@ public:
             tmp[length - 1] = p;
             delete[] patients;
             patients = tmp;
-            for(int i = length/2 - 1; i >= 0; i--) {
-                max_heapify(i, length - 1);
-            }
+            bubble_up(length-1);
         }
     }
 
