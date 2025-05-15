@@ -56,13 +56,13 @@ private:
 
         if (node->left) {
             // Position the slash better
-            matrix[row + 1][col - max(gap/2,1)] = "/";
+            matrix[row + 1][col - max(gap / 2, 1)] = "/";
             fillMatrix(node->left, matrix, row + 2, col - gap, offset/2, nodeWidth);
         }
 
         if (node->right) {
             // Position the backslash better
-            matrix[row + 1][col + gap/2] = "\\";
+            matrix[row + 1][col + max(gap / 2, 1)] = "\\";
             fillMatrix(node->right, matrix, row + 2, col + gap, offset/2, nodeWidth);
         }
     }
@@ -288,10 +288,7 @@ public:
     }
 
     void printTree() {
-        if (isEmpty()) {
-            cout << "Address Book is empty.\n";
-            return;
-        }
+       
 
         // Find the node with the longest string representation to determine spacing
         int maxNodeWidth = findMaxNodeWidth(root);
