@@ -61,6 +61,10 @@ void readTestCasesFromFile(const string& filename) {
 }
 
 int main() {
-    readTestCasesFromFile("test.txt");
+    string filename;
+    cout << "Enter file name without extension: ";
+    cin >> filename;
+    filename += ".txt";
+    readTestCasesFromFile(filename);
     return 0;
 }
