@@ -66,12 +66,12 @@ private:
                     cout << "Invalid Phone Format!\n";
                     continue;
                 }
-                cout << "Your Email must be like the following format: example@gmaill.com\n";
+                cout << "Your Email must be like the following format: example@gmail.com\n";
                 cout << "Enter Email: ";
                 string email;
                 getline(cin,email);
-                regex emailPatter("^[a-zA-Z0-9._%+-]+@[a-zA-Z]+\\.[a-zA-Z]{2,}$");
-                if(!regex_match(email,emailPatter)){
+                regex emailPattern("^[a-zA-Z0-9._%+-]+@[a-zA-Z]+\\.[a-zA-Z]{2,}$");
+                if(!regex_match(email,emailPattern)){
                     cout << "Invalid Email Format!\n";
                     continue;
                 }
@@ -79,13 +79,13 @@ private:
                 Pair<int, Dictionary> searchKey(id, Dictionary(name, phone, email));
                 Pair<int, Dictionary> foundNode(0, Dictionary("", "", ""));
                 if (tree.getNode(searchKey, foundNode)) {
-                    cout << "Error: Contact with ID " << id << " already exists!\n";
-                    continue;
+                    cout << "\nError: Contact with ID " << id << " already exists!\n";
                 }
                 else {
                     tree.insertNode(searchKey);
-                    cout << "Contact added successfully.\n";
+                    cout << "\nContact added successfully.\n";
                 }
+                cout << "\n" << string(90, '-') << "\n\n";
             }
             if(op == 2){
                 cout << "Enter ID to search (positive integer): ";
@@ -98,13 +98,14 @@ private:
                 Pair<int, Dictionary> foundNode(0, Dictionary("", "", ""));
 
                 if (tree.getNode(searchKey, foundNode)) {
-                    cout << "Contact Found\n";
+                    cout << "C\nontact Found\n";
                     cout << foundNode;
                 }
                 else {
-                    cout << "Contact with ID " << id << " Not Found!\n";
-                    continue;
+                    cout << "\nContact with ID " << id << " Not Found!\n";
+                    
                 }
+                cout << "\n" << string(90, '-') << "\n\n";
             }
             if(op == 3){
                 cout << "Enter ID to delete: ";
@@ -118,20 +119,32 @@ private:
                 }
                 else{
                     cout << "Contact not Found!\n";
-                    continue;
+                    
                 }
+                cout << "\n" << string(90, '-') << "\n\n";
             }
             if (op == 4){
+
                 if (tree.isEmpty()) {
                     cout << "Address Book is empty.\n";
-                    continue;
+                    
                 }
-                cout << "Contacts in Address Book (sorted by ID):\n\n";
-                tree.inOrder(tree.getroot());
+                else {
+                    cout << "Contacts in Address Book (sorted by ID):\n\n";
+                    tree.inOrder(tree.getroot());
+                }
+                cout << "\n" << string(90, '-') << "\n\n";
             }
             if(op == 5){
-                cout << "Current AVL Tree:\n";
-                tree.printTree();
+                if (tree.isEmpty()) {
+                    cout << "Address Book is empty.\n";
+                   
+                }
+                else {
+                    cout << "Current AVL Tree:\n";
+                    tree.printTree();
+                }
+                cout << "\n" << string(90, '-') << "\n\n";
             }
             if(op == 6){
                 break;
@@ -207,6 +220,7 @@ private:
                     tree.insertNode(searchKey);
                     cout << "Contact added successfully.\n";
                 }
+                cout << "\n" << string(90, '-') << "\n\n";
             }
 
             else if (op == 2 || op == 3) {
@@ -224,8 +238,9 @@ private:
                         cout << foundNode;
                     }
                     else {
-                        cout << "Contact Not Found\n";
+                        cout << "\nContact with ID " << id << " Not Found!\n";
                     }
+                    cout << "\n" << string(90, '-') << "\n\n";
                 }
 
                 if (op == 3) {
@@ -235,6 +250,7 @@ private:
                     else {
                         cout << "Contact not found\n";
                     }
+                    cout << "\n" << string(90, '-') << "\n\n";
                 }
             }
 
@@ -242,19 +258,32 @@ private:
 
                 if (tree.isEmpty()) {                   
                         cout << "Address Book is empty.\n";
-                        continue;
+                        
                 }
-                cout << "Contacts in Address Book (sorted by ID):\n\n";
-                tree.inOrder(tree.getroot());
+
+                else {
+                    cout << "Contacts in Address Book (sorted by ID):\n\n";
+                    tree.inOrder(tree.getroot());
+                }
+               
+                cout << "\n" << string(90, '-') << "\n\n";
             }
 
             else if (op == 5) {
-                cout << "Current AVL Tree:\n";
-                tree.printTree();
+                if (tree.isEmpty()) {
+                    cout << "Address Book is empty.\n";
+                    
+                }
+                else {
+                    cout << "Current AVL Tree:\n";
+                    tree.printTree();
+                }
+               
+                cout << "\n" << string(90, '-') << "\n\n";
             }
 
             else if (op == 6) {
-                cout << "Exiting" <<  filename <<"\n";
+                cout << "Exiting " <<  filename <<"\n\n";
                 break;
             }
 
